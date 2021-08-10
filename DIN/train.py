@@ -23,7 +23,7 @@ os.environ['CUDA_VISIBLE_DEVICES'] = '6'
 
 if __name__ == '__main__':
     # ========================= Hyper Parameters =======================
-    file = 'raw_data/remap.pkl'
+    file = '../data/原数据-20210301-20210328/'
     maxlen = 20
     
     embed_dim = 8
@@ -37,7 +37,7 @@ if __name__ == '__main__':
     batch_size = 4096
     epochs = 5
     # ========================== Create dataset =======================
-    feature_columns, behavior_list, train, val, test = create_amazon_electronic_dataset(file, embed_dim, maxlen)
+    feature_columns, behavior_list, train, val, test = create_mdd_dataset(file, embed_dim, maxlen)
     train_X, train_y = train
     val_X, val_y = val
     test_X, test_y = test
@@ -79,3 +79,19 @@ if __name__ == '__main__':
     # plt.show()
     # ===========================Test==============================
     print('test AUC: %f' % model.evaluate(test_X, test_y, batch_size=batch_size)[1])
+
+"""
+Epoch 1/5
+418/418 [==============================] - 50s 113ms/step - loss: 0.1937 - auc: 0.9722 - val_loss: 0.3197 - val_auc: 0.9789
+Epoch 2/5
+418/418 [==============================] - 49s 118ms/step - loss: 0.1428 - auc: 0.9790 - val_loss: 0.1416 - val_auc: 0.9798
+Epoch 3/5
+418/418 [==============================] - 49s 116ms/step - loss: 0.1405 - auc: 0.9799 - val_loss: 0.1395 - val_auc: 0.9807
+Epoch 4/5
+418/418 [==============================] - 48s 115ms/step - loss: 0.1375 - auc: 0.9813 - val_loss: 0.1371 - val_auc: 0.9820
+Epoch 5/5
+418/418 [==============================] - 47s 113ms/step - loss: 0.1315 - auc: 0.9836 - val_loss: 0.1305 - val_auc: 0.9843
+53/53 [==============================] - 3s 53ms/step - loss: 0.1294 - auc: 0.9844
+test AUC: 0.984377
+"""
+
