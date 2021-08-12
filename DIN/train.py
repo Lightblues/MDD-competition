@@ -46,9 +46,11 @@ if __name__ == '__main__':
         ffn_activation, maxlen, dnn_dropout)
     model.summary()
     # ============================model checkpoint======================
-    # check_path = 'save/din_weights.epoch_{epoch:04d}.val_loss_{val_loss:.4f}.ckpt'
-    # checkpoint = tf.keras.callbacks.ModelCheckpoint(check_path, save_weights_only=True,
-    #                                                 verbose=1, period=5)
+    check_path = 'save/din_weights.epoch_{epoch:04d}.val_loss_{val_loss:.4f}.ckpt'
+    checkpoint = tf.keras.callbacks.ModelCheckpoint(check_path, save_weights_only=True,
+                                                    verbose=1, save_freq=5,
+                                                    save_best_only=True)
+    # model.load_weights(check_path)
     # =========================Compile============================
     model.compile(loss=binary_crossentropy, optimizer=Adam(learning_rate=learning_rate),
                   metrics=[AUC()])
@@ -56,7 +58,8 @@ if __name__ == '__main__':
 
     callbacks = [
         EarlyStopping(monitor='val_loss', patience=5, restore_best_weights=True),  # 早停
-        ReduceLROnPlateau(monitor='val_loss', patience=3, factor=0.01, verbose=1)  # 调整学习率
+        ReduceLROnPlateau(monitor='val_loss', patience=3, factor=0.01, verbose=1),  # 调整学习率
+        checkpoint,
     ]
 
     history = model.fit(
