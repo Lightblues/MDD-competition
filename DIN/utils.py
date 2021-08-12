@@ -176,21 +176,17 @@ def create_mdd_dataset(datapath, embed_dim=8, maxlen=40):
     data_seq = data[['wm_order_id', "clicks", "wm_poi_id"]]
     data_gen = []
     for wm_order_id, clicks, wm_poi_id in tqdm(data_seq.values):
-        # def gen_neg():
-        #     pos_list = clicks + [wm_poi_id]
-        #     neg = pos_list[0]
-        #     while neg in pos_list:
-        #         neg = random.randint(0, nspus - 1)
-        #     return neg
-        # neg_list = [gen_neg() for i in range(len(clicks))]
-        # 一比一生成负例
-        pos_list = clicks + [wm_poi_id]
-        neg = pos_list[0]
-        while neg in pos_list:
-            neg = random.randint(0, npois - 1)
-
+        def gen_neg():
+            pos_list = clicks + [wm_poi_id]
+            neg = pos_list[0]
+            while neg in pos_list:
+                neg = random.randint(0, npois - 1)
+            return neg
+        neg_list = [gen_neg() for i in range(10)]
+        # 1:10 生成负例
         data_gen.append([wm_order_id, [wm_poi_id], 1])
-        data_gen.append([wm_order_id, [neg], 0])
+        for neg in neg_list:
+            data_gen.append([wm_order_id, [neg], 0])
 
     data_gen = pd.DataFrame(data_gen, columns=['wm_order_id', 'item_id', 'label'])
     data = pd.merge(data_gen, data_feat, on="wm_order_id", how='left')
@@ -217,6 +213,45 @@ def create_mdd_dataset(datapath, embed_dim=8, maxlen=40):
 
     print('============Data Preprocess End=============')
     return feature_columns, behavior_list, (train_X, train_y), (val_X, val_y), (test_X, test_y)
+
+def create_test_dataset(datapath, embed_dim=8, maxlen=40):
+    print('==========Data Preprocess Start============')
+    d_session = pd.read_csv(datapath+"orders_poi_session.txt", sep='\t')
+    d_test = pd.read_csv(datapath + "orders_test_poi.txt", encoding="utf-8", sep='\t')
+    """
+    wm_order_id	clicks	dt
+    user_id	wm_order_id	aor_id	order_timestamp	ord_period_name	aoi_id	takedlvr_aoi_type_name	dt
+    """
+    data = pd.merge(d_test, d_session, on="wm_order_id")
+    data['clicks'] = data['clicks'].apply(lambda x: [int(i) for i in x.split('#')] if not pd.isnull(x) else [])
+
+
+    # 返回特征
+    npois = 29071
+    feature_columns = [[ ],[
+        # sparseFeature('user_id', data['user_id'].nunique(), embed_dim),
+        sparseFeature('wm_poi_id', npois + 1, embed_dim),
+        # sparseFeature('wm_poi_id', max(data['wm_poi_id']) + 1, embed_dim),
+        # sparseFeature('aor_id', data['aor_id'].nunique(), embed_dim),
+        # sparseFeature('order_price_interval', data['order_price_interval'].nunique(), embed_dim),
+        # sparseFeature('ord_period_name', data['ord_period_name'].nunique(), embed_dim),
+        # sparseFeature('order_scene_name', data['order_scene_name'].nunique(), embed_dim),
+        # sparseFeature('aoi_id', data['aoi_id'].nunique(), embed_dim),
+        # sparseFeature('takedlvr_aoi_type_name', data['takedlvr_aoi_type_name'].nunique(), embed_dim),
+    ]]
+    behavior_list = ['wm_poi_id']
+
+
+    print('==================Padding===================')
+    seq_input = pad_sequences(data['clicks'], maxlen=maxlen)[..., np.newaxis]
+    # item_input = np.arange(npois)[..., np.newaxis]
+    data_X = [
+        np.array([0.] * len(data)),
+        np.array([0.] * len(data)),
+        seq_input
+    ]
+    print('============Data Preprocess End=============')
+    return feature_columns, behavior_list, data_X, data['wm_order_id']
 
 if __name__ == '__main__':
     feature_columns, behavior_list, (train_X, train_y), (val_X, val_y), (test_X, test_y) = \

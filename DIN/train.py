@@ -1,12 +1,4 @@
-"""
-Created on Oct 23, 2020
-
-train DIN model
-
-@author: Ziyao Geng
-"""
 import tensorflow as tf
-from time import time
 from tensorflow.keras.losses import binary_crossentropy
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.callbacks import EarlyStopping ,ReduceLROnPlateau
@@ -35,7 +27,7 @@ if __name__ == '__main__':
 
     learning_rate = 0.001
     batch_size = 4096
-    epochs = 5
+    epochs = 50
     # ========================== Create dataset =======================
     feature_columns, behavior_list, train, val, test = create_mdd_dataset(file, embed_dim, maxlen)
     train_X, train_y = train
@@ -47,9 +39,11 @@ if __name__ == '__main__':
     model.summary()
     # ============================model checkpoint======================
     check_path = 'save/din_weights.epoch_{epoch:04d}.val_loss_{val_loss:.4f}.ckpt'
+    # check_path = 'save/din_weights.ckpt'
     checkpoint = tf.keras.callbacks.ModelCheckpoint(check_path, save_weights_only=True,
-                                                    verbose=1, save_freq=5,
-                                                    save_best_only=True)
+                                                    verbose=1, save_freq='epoch',
+                                                    save_best_only=True
+                                                    )
     # model.load_weights(check_path)
     # =========================Compile============================
     model.compile(loss=binary_crossentropy, optimizer=Adam(learning_rate=learning_rate),
@@ -78,7 +72,7 @@ if __name__ == '__main__':
     plt.ylabel('Loss')
     plt.xlabel('Epoch')
     plt.legend(['Train', 'Test'], loc='upper left')
-    plt.savefig('./loss.png')
+    plt.savefig('./DIN-base-seq-loss.png')
     # plt.show()
     # ===========================Test==============================
     print('test AUC: %f' % model.evaluate(test_X, test_y, batch_size=batch_size)[1])
