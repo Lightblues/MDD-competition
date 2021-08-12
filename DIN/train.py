@@ -15,7 +15,8 @@ os.environ['CUDA_VISIBLE_DEVICES'] = '6'
 
 if __name__ == '__main__':
     # ========================= Hyper Parameters =======================
-    file = '../data/原数据-20210301-20210328/'
+    # file = '../data/原数据-20210301-20210328/'
+    file = "../data/SMP新数据-20210607-20210702/"
     maxlen = 20
     
     embed_dim = 8
@@ -27,7 +28,7 @@ if __name__ == '__main__':
 
     learning_rate = 0.001
     batch_size = 4096
-    epochs = 50
+    epochs = 200
     # ========================== Create dataset =======================
     feature_columns, behavior_list, train, val, test = create_mdd_dataset(file, embed_dim, maxlen)
     train_X, train_y = train

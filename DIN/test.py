@@ -1,5 +1,7 @@
 from model import DIN
-from utils import create_mdd_dataset, sparseFeature, denseFeature, create_test_dataset
+from utils import create_mdd_dataset, sparseFeature, denseFeature, create_test_dataset, \
+    npois
+
 
 import pandas as pd
 import numpy as np
@@ -11,7 +13,6 @@ from tensorflow.keras.callbacks import EarlyStopping ,ReduceLROnPlateau
 from tensorflow.keras.metrics import AUC
 from tensorflow.keras.losses import binary_crossentropy
 
-file = '../data/原数据-20210301-20210328/'
 maxlen = 20
 
 embed_dim = 8
@@ -23,10 +24,9 @@ ffn_activation = 'prelu'
 
 learning_rate = 0.001
 batch_size = 4096
-epochs = 5
 
-npois = 29071
-test_path = '../data/原数据-20210301-20210328/'
+# test_path = '../data/原数据-20210301-20210328/'
+test_path = "../data/SMP新数据-20210607-20210702/"
 feature_columns, behavior_list, test_X, wm_order_id = create_test_dataset(test_path, embed_dim, maxlen)
 
 
@@ -50,7 +50,7 @@ model.load_weights(check_path)
 # loss,acc = model.evaluate(test_X, test_y, batch_size=batch_size, verbose=2)
 # print("Restored model, accuracy: {:5.2f}%".format(100*acc))
 
-nsamples = 20
+nsamples = np.inf
 
 test_num = len(test_X[0])
 pred = []

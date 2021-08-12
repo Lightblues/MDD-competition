@@ -1,3 +1,14 @@
+```shell
+# 198
+nohup python train.py -u > DIN-base-seq.log 2>&1 &  # 1.5 min/epoch
+# need to edit test.py `test_path`
+168546
+nohup python test.py > test.log 2>&1 & # about 10min
+
+#din_weights.epoch_0005.val_loss_0.0858.ckpt
+```
+
+
 ## Data
 
 ```

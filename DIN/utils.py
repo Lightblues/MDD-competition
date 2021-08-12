@@ -15,6 +15,9 @@ from tensorflow.keras.preprocessing.sequence import pad_sequences
 from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import train_test_split
 
+# npois = 29071
+npois = 29924
+
 
 def sparseFeature(feat, feat_num, embed_dim=4):
     """
@@ -144,7 +147,6 @@ def create_mdd_dataset(datapath, embed_dim=8, maxlen=40):
     #     spus |= set(l)
     # nspus = len(spus)
 
-    npois = 29071
     # ============ feature columns
     # user_id	wm_order_id	wm_poi_id	aor_id	order_price_interval	order_timestamp	ord_period_name	order_scene_name	aoi_id	takedlvr_aoi_type_name	dt
     # === 不加入其他特征
@@ -168,7 +170,7 @@ def create_mdd_dataset(datapath, embed_dim=8, maxlen=40):
     # behavior
     behavior_list = ['wm_poi_id']
 
-    nspus = 195244
+    # nspus = 195244
     data_feat = data[[
         'user_id', 'aor_id', 'order_price_interval', 'ord_period_name', 'order_scene_name', 'aoi_id', 'takedlvr_aoi_type_name',
         "wm_poi_id", 'wm_order_id', 'clicks'
@@ -227,7 +229,6 @@ def create_test_dataset(datapath, embed_dim=8, maxlen=40):
 
 
     # 返回特征
-    npois = 29071
     feature_columns = [[ ],[
         # sparseFeature('user_id', data['user_id'].nunique(), embed_dim),
         sparseFeature('wm_poi_id', npois + 1, embed_dim),
