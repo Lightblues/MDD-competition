@@ -1,6 +1,6 @@
 from model import DIN
-from utils import create_mdd_dataset, sparseFeature, denseFeature, create_test_dataset, \
-    npois
+from utils import create_mdd_dataset, sparseFeature, denseFeature, \
+    create_test_dataset, npois
 
 
 import pandas as pd
@@ -41,20 +41,29 @@ model = DIN(feature_columns, behavior_list, att_hidden_units, ffn_hidden_units, 
 model.compile(loss=binary_crossentropy, optimizer=Adam(learning_rate=learning_rate),
               metrics=[AUC()])
 
-check_path = 'save/din_weights.epoch_0005.val_loss_0.1283.ckpt'
+"""
+# seq
+din_weights.epoch_0037.val_loss_0.0806.ckpt
+# 
+save-DIN/din_weights.epoch_0009.val_loss_0.0655.ckpt
+"""
+check_path = 'save-DIN/din_weights.epoch_0009.val_loss_0.0655.ckpt'
 # check_path = 'save'
 model.load_weights(check_path)
+
 # model.built = True
 
 # 重新评估模型
 # loss,acc = model.evaluate(test_X, test_y, batch_size=batch_size, verbose=2)
 # print("Restored model, accuracy: {:5.2f}%".format(100*acc))
 
-nsamples = np.inf
+nsamples = 9999
 
 test_num = len(test_X[0])
-pred = []
-for dense_input, sparse_input, seq_input in tqdm(list(zip(*test_X))[:nsamples]):
+# pred = []
+fname = '../output/DIN_base_seq.txt'
+outf = open(fname, 'w')
+for dense_input, sparse_input, seq_input, order_id in tqdm(list(zip(*test_X, wm_order_id))):
     data = [
         np.repeat(dense_input, npois),
         np.repeat(sparse_input, npois),
@@ -62,10 +71,8 @@ for dense_input, sparse_input, seq_input in tqdm(list(zip(*test_X))[:nsamples]):
         np.arange(npois)[..., np.newaxis]
     ]
     out = model(data).numpy().squeeze()
-    pred.append(np.argsort(out)[::-1][:5])
+    topK = np.argsort(out)[::-1][:5]
+    # pred.append(topK)
+    outf.write("{}\t{}\n".format(order_id, "\t".join([str(i) for i in topK])))
 
-output = np.hstack([wm_order_id[..., np.newaxis][:nsamples], np.array(pred)])
-fname = '../output/DIN_base_seq.txt'
-with open(fname, 'w') as f:
-    for row in output:
-        f.write("\t".join([str(i) for i in row]) + "\n")
+# output = np.hstack([wm_order_id[..., np.newaxis][:nsamples], np.array(pred)])

@@ -30,7 +30,8 @@ if __name__ == '__main__':
     batch_size = 4096
     epochs = 200
     # ========================== Create dataset =======================
-    feature_columns, behavior_list, train, val, test = create_mdd_dataset(file, embed_dim, maxlen)
+    # feature_columns, behavior_list, train, val, test = create_mdd_dataset(file, embed_dim, maxlen)
+    feature_columns, behavior_list, train, val, test = pickle.load(open('../data/data-DIN.pkl', 'rb'))
     train_X, train_y = train
     val_X, val_y = val
     test_X, test_y = test
@@ -39,7 +40,7 @@ if __name__ == '__main__':
         ffn_activation, maxlen, dnn_dropout)
     model.summary()
     # ============================model checkpoint======================
-    check_path = 'save/din_weights.epoch_{epoch:04d}.val_loss_{val_loss:.4f}.ckpt'
+    check_path = 'save-DIN/din_weights.epoch_{epoch:04d}.val_loss_{val_loss:.4f}.ckpt'
     # check_path = 'save/din_weights.ckpt'
     checkpoint = tf.keras.callbacks.ModelCheckpoint(check_path, save_weights_only=True,
                                                     verbose=1, save_freq='epoch',
@@ -50,13 +51,13 @@ if __name__ == '__main__':
     model.compile(loss=binary_crossentropy, optimizer=Adam(learning_rate=learning_rate),
                   metrics=[AUC()])
     # ===========================Fit==============================
-
+    # train_X_ = [a[:20] for a in train_X]
+    # train_y_ = model(train_X_)
     callbacks = [
         EarlyStopping(monitor='val_loss', patience=5, restore_best_weights=True),  # 早停
         ReduceLROnPlateau(monitor='val_loss', patience=3, factor=0.01, verbose=1),  # 调整学习率
         checkpoint,
     ]
-
     history = model.fit(
         train_X,
         train_y,

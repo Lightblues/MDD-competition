@@ -16,36 +16,30 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import train_test_split
 
 # npois = 29071
-npois = 29924
+# nspus = 179778
 
+npois = 29924
+nusers = 200000
+# nspus = 195244
+
+sparse_feature_count = {
+    # 'wm_poi_id': npois,
+    'user_id': nusers,
+    'aor_id': 11,
+    'ord_period_name': 5,
+    'aoi_id': 3551,
+    'takedlvr_aoi_type_name': 13
+}
 
 def sparseFeature(feat, feat_num, embed_dim=4):
-    """
-    create dictionary for sparse feature
-    :param feat: feature name
-    :param feat_num: the total number of sparse features that do not repeat
-    :param embed_dim: embedding dimension
-    :return:
-    """
     return {'feat': feat, 'feat_num': feat_num, 'embed_dim': embed_dim}
 
 
 def denseFeature(feat):
-    """
-    create dictionary for dense feature
-    :param feat: dense feature name
-    :return:
-    """
     return {'feat': feat}
 
 
 def create_amazon_electronic_dataset(file, embed_dim=8, maxlen=40):
-    """
-    :param file: dataset path
-    :param embed_dim: latent factor
-    :param maxlen:
-    :return: user_num, item_num, train_df, test_df
-    """
     print('==========Data Preprocess Start============')
     with open('raw_data/remap.pkl', 'rb') as f:
         reviews_df = pickle.load(f)
@@ -123,7 +117,6 @@ def create_amazon_electronic_dataset(file, embed_dim=8, maxlen=40):
     return feature_columns, behavior_list, (train_X, train_y), (val_X, val_y), (test_X, test_y)
 
 
-
 def create_mdd_dataset(datapath, embed_dim=8, maxlen=40):
     print('==========Data Preprocess Start============')
     d_session = pd.read_csv(datapath+"orders_poi_session.txt", sep='\t')
@@ -150,27 +143,27 @@ def create_mdd_dataset(datapath, embed_dim=8, maxlen=40):
     # ============ feature columns
     # user_id	wm_order_id	wm_poi_id	aor_id	order_price_interval	order_timestamp	ord_period_name	order_scene_name	aoi_id	takedlvr_aoi_type_name	dt
     # === 不加入其他特征
-    # le = LabelEncoder()
+    le = LabelEncoder()
     # data['order_price_interval'] = le.fit_transform(data['order_price_interval'])
     # # data['order_scene_name'] = data['order_scene_name'].replace("未知", -1).astype(int)
-    # data['order_scene_name'] = le.fit_transform(data['order_scene_name'])
-    # data['aoi_id'] = le.fit_transform(data['aoi_id'])
-    # data['takedlvr_aoi_type_name'] = le.fit_transform(data['takedlvr_aoi_type_name'])
+    data['order_scene_name'] = le.fit_transform(data['order_scene_name'])
+    data['aoi_id'] = le.fit_transform(data['aoi_id'])
+    data['takedlvr_aoi_type_name'] = le.fit_transform(data['takedlvr_aoi_type_name'])
     feature_columns = [[ ],[
-        # sparseFeature('user_id', data['user_id'].nunique(), embed_dim),
-        sparseFeature('wm_poi_id', npois + 1, embed_dim),
-        # sparseFeature('wm_poi_id', max(data['wm_poi_id']) + 1, embed_dim),
-        # sparseFeature('aor_id', data['aor_id'].nunique(), embed_dim),
-        # sparseFeature('order_price_interval', data['order_price_interval'].nunique(), embed_dim),
-        # sparseFeature('ord_period_name', data['ord_period_name'].nunique(), embed_dim),
-        # sparseFeature('order_scene_name', data['order_scene_name'].nunique(), embed_dim),
-        # sparseFeature('aoi_id', data['aoi_id'].nunique(), embed_dim),
-        # sparseFeature('takedlvr_aoi_type_name', data['takedlvr_aoi_type_name'].nunique(), embed_dim),
+        sparseFeature('wm_poi_id', npois + 1, embed_dim),   # behavior 1
+        # other features
+        sparseFeature('user_id', nusers + 1, embed_dim),
+        sparseFeature('aor_id', 11, embed_dim),                     # data['aor_id'].nunique() = 11
+        # sparseFeature('order_price_interval', 5, embed_dim),        # data['order_price_interval'].nunique() = 5    ['<29', '>=65', '[29,36)', '[36,49)', '[49,65)']
+        sparseFeature('ord_period_name', 5, embed_dim),             # data['ord_period_name'].nunique() =  5
+        # sparseFeature('order_scene_name', 10, embed_dim),           # data['order_scene_name'].nunique() = 10       [未知 0-9]
+        sparseFeature('aoi_id', 3551, embed_dim),                   # data['aoi_id'].nunique() = 3551               [nan 0-3549]
+        sparseFeature('takedlvr_aoi_type_name', 13, embed_dim),     # data['takedlvr_aoi_type_name'].nunique() = 13 [未知 0-11]
     ]]
     # behavior
     behavior_list = ['wm_poi_id']
 
-    # nspus = 195244
+
     data_feat = data[[
         'user_id', 'aor_id', 'order_price_interval', 'ord_period_name', 'order_scene_name', 'aoi_id', 'takedlvr_aoi_type_name',
         "wm_poi_id", 'wm_order_id', 'clicks'
@@ -195,8 +188,10 @@ def create_mdd_dataset(datapath, embed_dim=8, maxlen=40):
 
     print('==================Padding===================')
     data_X = [
-        np.array([0.] * len(data)),
-        np.array([0] * len(data)),
+        np.array([0.0] * len(data)),
+        # np.concatenate([data[f].values.reshape(-1,1) for f in ['user_id', 'aor_id', 'order_price_interval', 'ord_period_name', 'order_scene_name', 'aoi_id', 'takedlvr_aoi_type_name']], axis=-1),
+        np.concatenate([data[f].values.reshape(-1, 1) for f in
+                        sparse_feature_count.keys()], axis=-1),
         pad_sequences(data['clicks'], maxlen=maxlen)[..., np.newaxis],
         np.array(data['item_id'].tolist())
     ]
@@ -204,7 +199,7 @@ def create_mdd_dataset(datapath, embed_dim=8, maxlen=40):
 
     n_samples = len(data_y)
     idx = np.arange(n_samples)
-    random.shuffle(idx)
+    np.random.shuffle(idx)
     data_X = [a[idx] for a in data_X]
     data_y = data_y[idx]
     sp1, sp2 = int(n_samples*.1), int(n_samples*.2)
@@ -227,19 +222,25 @@ def create_test_dataset(datapath, embed_dim=8, maxlen=40):
     data = pd.merge(d_test, d_session, on="wm_order_id")
     data['clicks'] = data['clicks'].apply(lambda x: [int(i) for i in x.split('#')] if not pd.isnull(x) else [])
 
+    le = LabelEncoder()
+    # data['order_price_interval'] = le.fit_transform(data['order_price_interval'])
+    # data['order_scene_name'] = le.fit_transform(data['order_scene_name'])
+    data['aoi_id'] = le.fit_transform(data['aoi_id'])
+    data['takedlvr_aoi_type_name'] = le.fit_transform(data['takedlvr_aoi_type_name'])
 
     # 返回特征
     feature_columns = [[ ],[
-        # sparseFeature('user_id', data['user_id'].nunique(), embed_dim),
-        sparseFeature('wm_poi_id', npois + 1, embed_dim),
-        # sparseFeature('wm_poi_id', max(data['wm_poi_id']) + 1, embed_dim),
-        # sparseFeature('aor_id', data['aor_id'].nunique(), embed_dim),
-        # sparseFeature('order_price_interval', data['order_price_interval'].nunique(), embed_dim),
-        # sparseFeature('ord_period_name', data['ord_period_name'].nunique(), embed_dim),
-        # sparseFeature('order_scene_name', data['order_scene_name'].nunique(), embed_dim),
-        # sparseFeature('aoi_id', data['aoi_id'].nunique(), embed_dim),
-        # sparseFeature('takedlvr_aoi_type_name', data['takedlvr_aoi_type_name'].nunique(), embed_dim),
+        sparseFeature('wm_poi_id', npois + 1, embed_dim),   # behavior 1
+        # other features
+        sparseFeature('user_id', nusers + 1, embed_dim),
+        sparseFeature('aor_id', 11, embed_dim),
+        # sparseFeature('order_price_interval', 5, embed_dim),
+        sparseFeature('ord_period_name', 5, embed_dim),
+        # sparseFeature('order_scene_name', 10, embed_dim),
+        sparseFeature('aoi_id', 3551, embed_dim),
+        sparseFeature('takedlvr_aoi_type_name', 13, embed_dim),
     ]]
+    # behavior
     behavior_list = ['wm_poi_id']
 
 
@@ -248,13 +249,22 @@ def create_test_dataset(datapath, embed_dim=8, maxlen=40):
     # item_input = np.arange(npois)[..., np.newaxis]
     data_X = [
         np.array([0.] * len(data)),
-        np.array([0.] * len(data)),
+        # np.array([0.] * len(data)),
+        np.concatenate([data[f].values.reshape(-1, 1) for f in
+                        sparse_feature_count.keys()], axis=-1),
         seq_input
     ]
+
     print('============Data Preprocess End=============')
     return feature_columns, behavior_list, data_X, data['wm_order_id']
 
 if __name__ == '__main__':
+    fpath = "../data/SMP新数据-20210607-20210702/"
     feature_columns, behavior_list, (train_X, train_y), (val_X, val_y), (test_X, test_y) = \
-        create_mdd_dataset('../data/原数据-20210301-20210328/', 8, 20)
-
+        create_mdd_dataset(fpath, 8, 20)
+    pickle.dump((feature_columns, behavior_list, (train_X, train_y), (val_X, val_y), (test_X, test_y)),
+                open('../data/data-DIN.pkl', 'wb'))
+    feature_columns, behavior_list, test_X, wm_order_id = \
+        create_test_dataset(fpath, 8, 20)
+    pickle.dump((feature_columns, behavior_list, test_X, wm_order_id),
+                open('../data/data-DIN-test.pkl', 'wb'))

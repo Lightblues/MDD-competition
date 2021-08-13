@@ -12,7 +12,7 @@ from tensorflow.keras.layers import Embedding, Dense, BatchNormalization, Input,
 from tensorflow.keras.regularizers import l2
 
 from modules import *
-
+from tensorflow import keras
 
 class DIN(Model):
     def __init__(self, feature_columns, behavior_feature_list, att_hidden_units=(80, 40),
@@ -74,7 +74,7 @@ class DIN(Model):
         # attention ---> mask, if the element of seq_inputs is equal 0, it must be filled in. 
         mask = tf.cast(tf.not_equal(seq_inputs[:, :, 0], 0), dtype=tf.float32)  # (None, maxlen)
         # other
-        other_info = dense_inputs
+        other_info = tf.reshape(dense_inputs, [-1,1])
         for i in range(self.other_sparse_len):
             other_info = tf.concat([other_info, self.embed_sparse_layers[i](sparse_inputs[:, i])], axis=-1)
 
