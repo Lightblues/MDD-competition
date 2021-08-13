@@ -1,10 +1,3 @@
-"""
-Created on May 25, 2020
-
-create amazon electronic dataset
-
-@author: Ziyao Geng
-"""
 import pandas as pd
 import numpy as np
 import pickle
