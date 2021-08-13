@@ -27,7 +27,7 @@ sparse_feature_count = {
     'user_id': nusers,
     'aor_id': 11,
     'ord_period_name': 5,
-    'aoi_id': 3551,
+    'aoi_id': 3700,     # 3625，有不包含在train中的地址
     'takedlvr_aoi_type_name': 13
 }
 
@@ -147,19 +147,20 @@ def create_mdd_dataset(datapath, embed_dim=8, maxlen=40):
     # data['order_price_interval'] = le.fit_transform(data['order_price_interval'])
     # # data['order_scene_name'] = data['order_scene_name'].replace("未知", -1).astype(int)
     data['order_scene_name'] = le.fit_transform(data['order_scene_name'])
-    data['aoi_id'] = le.fit_transform(data['aoi_id'])
+    # data['aoi_id'] =le.fit_transform(data['aoi_id'])
+    data['aoi_id'].fillna(3699, inplace=True)
     data['takedlvr_aoi_type_name'] = le.fit_transform(data['takedlvr_aoi_type_name'])
     feature_columns = [[ ],[
         sparseFeature('wm_poi_id', npois + 1, embed_dim),   # behavior 1
         # other features
-        sparseFeature('user_id', nusers + 1, embed_dim),
-        sparseFeature('aor_id', 11, embed_dim),                     # data['aor_id'].nunique() = 11
-        # sparseFeature('order_price_interval', 5, embed_dim),        # data['order_price_interval'].nunique() = 5    ['<29', '>=65', '[29,36)', '[36,49)', '[49,65)']
-        sparseFeature('ord_period_name', 5, embed_dim),             # data['ord_period_name'].nunique() =  5
-        # sparseFeature('order_scene_name', 10, embed_dim),           # data['order_scene_name'].nunique() = 10       [未知 0-9]
-        sparseFeature('aoi_id', 3551, embed_dim),                   # data['aoi_id'].nunique() = 3551               [nan 0-3549]
-        sparseFeature('takedlvr_aoi_type_name', 13, embed_dim),     # data['takedlvr_aoi_type_name'].nunique() = 13 [未知 0-11]
-    ]]
+        # sparseFeature('user_id', nusers + 1, embed_dim),
+        # sparseFeature('aor_id', 11, embed_dim),                     # data['aor_id'].nunique() = 11
+        # # sparseFeature('order_price_interval', 5, embed_dim),        # data['order_price_interval'].nunique() = 5    ['<29', '>=65', '[29,36)', '[36,49)', '[49,65)']
+        # sparseFeature('ord_period_name', 5, embed_dim),             # data['ord_period_name'].nunique() =  5
+        # # sparseFeature('order_scene_name', 10, embed_dim),           # data['order_scene_name'].nunique() = 10       [未知 0-9]
+        # sparseFeature('aoi_id', 3551, embed_dim),                   # data['aoi_id'].nunique() = 3625               [nan 0-3623]
+        # sparseFeature('takedlvr_aoi_type_name', 13, embed_dim),     # data['takedlvr_aoi_type_name'].nunique() = 13 [未知 0-11]
+    ] + [sparseFeature(f, c, embed_dim) for f, c in sparse_feature_count.items()]]
     # behavior
     behavior_list = ['wm_poi_id']
 
@@ -225,21 +226,14 @@ def create_test_dataset(datapath, embed_dim=8, maxlen=40):
     le = LabelEncoder()
     # data['order_price_interval'] = le.fit_transform(data['order_price_interval'])
     # data['order_scene_name'] = le.fit_transform(data['order_scene_name'])
-    data['aoi_id'] = le.fit_transform(data['aoi_id'])
+    # data['aoi_id'] = le.fit_transform(data['aoi_id'])
+    data['aoi_id'].fillna(3699, inplace=True)
     data['takedlvr_aoi_type_name'] = le.fit_transform(data['takedlvr_aoi_type_name'])
 
     # 返回特征
     feature_columns = [[ ],[
         sparseFeature('wm_poi_id', npois + 1, embed_dim),   # behavior 1
-        # other features
-        sparseFeature('user_id', nusers + 1, embed_dim),
-        sparseFeature('aor_id', 11, embed_dim),
-        # sparseFeature('order_price_interval', 5, embed_dim),
-        sparseFeature('ord_period_name', 5, embed_dim),
-        # sparseFeature('order_scene_name', 10, embed_dim),
-        sparseFeature('aoi_id', 3551, embed_dim),
-        sparseFeature('takedlvr_aoi_type_name', 13, embed_dim),
-    ]]
+    ] + [sparseFeature(f, c, embed_dim) for f, c in sparse_feature_count.items()]]
     # behavior
     behavior_list = ['wm_poi_id']
 

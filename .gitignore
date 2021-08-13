@@ -3,4 +3,5 @@
 .idea
 /log
 save/
-output/
+results
+save-DIN/

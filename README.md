@@ -19,6 +19,9 @@ orders_train.txt
 user_id	wm_order_id	wm_poi_id	aor_id	order_price_interval	order_timestamp	ord_period_name	order_scene_name	aoi_id	takedlvr_aoi_type_name	dt
 
 orders_spu_train.txt
+
+oders_test_poi.txt
+user_id	wm_order_id	aor_id	order_timestamp	ord_period_name	aoi_id	takedlvr_aoi_type_name	dt
 ```
 
 

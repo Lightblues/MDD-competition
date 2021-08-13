@@ -26,7 +26,7 @@ if __name__ == '__main__':
     att_activation = 'sigmoid'
     ffn_activation = 'prelu'
 
-    learning_rate = 0.001
+    learning_rate = 0.01
     batch_size = 4096
     epochs = 200
     # ========================== Create dataset =======================
@@ -74,23 +74,8 @@ if __name__ == '__main__':
     plt.ylabel('Loss')
     plt.xlabel('Epoch')
     plt.legend(['Train', 'Test'], loc='upper left')
-    plt.savefig('./DIN-base-seq-loss.png')
+    plt.savefig('./DIN-base-loss.png')
     # plt.show()
     # ===========================Test==============================
     print('test AUC: %f' % model.evaluate(test_X, test_y, batch_size=batch_size)[1])
-
-"""
-Epoch 1/5
-418/418 [==============================] - 50s 113ms/step - loss: 0.1937 - auc: 0.9722 - val_loss: 0.3197 - val_auc: 0.9789
-Epoch 2/5
-418/418 [==============================] - 49s 118ms/step - loss: 0.1428 - auc: 0.9790 - val_loss: 0.1416 - val_auc: 0.9798
-Epoch 3/5
-418/418 [==============================] - 49s 116ms/step - loss: 0.1405 - auc: 0.9799 - val_loss: 0.1395 - val_auc: 0.9807
-Epoch 4/5
-418/418 [==============================] - 48s 115ms/step - loss: 0.1375 - auc: 0.9813 - val_loss: 0.1371 - val_auc: 0.9820
-Epoch 5/5
-418/418 [==============================] - 47s 113ms/step - loss: 0.1315 - auc: 0.9836 - val_loss: 0.1305 - val_auc: 0.9843
-53/53 [==============================] - 3s 53ms/step - loss: 0.1294 - auc: 0.9844
-test AUC: 0.984377
-"""
 

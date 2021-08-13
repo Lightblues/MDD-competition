@@ -77,7 +77,8 @@ class DIN(Model):
         other_info = tf.reshape(dense_inputs, [-1,1])
         for i in range(self.other_sparse_len):
             other_info = tf.concat([other_info, self.embed_sparse_layers[i](sparse_inputs[:, i])], axis=-1)
-
+        # print([x.input_dim for x in self.embed_sparse_layers])
+        # print(np.array(sparse_inputs).max(axis=0))
         # seq, item embedding and category embedding should concatenate
         seq_embed = tf.concat([self.embed_seq_layers[i](seq_inputs[:, :, i]) for i in range(self.behavior_num)], axis=-1)
         item_embed = tf.concat([self.embed_seq_layers[i](item_inputs[:, i]) for i in range(self.behavior_num)], axis=-1)
