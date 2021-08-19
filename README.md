@@ -6,6 +6,9 @@ nohup python train.py -u > DIN-base-seq.log 2>&1 &  # 1.5 min/epoch
 nohup python test.py > test.log 2>&1 & # about 10min
 
 #din_weights.epoch_0005.val_loss_0.0858.ckpt
+
+pip install -r requirements.txt
+pip freeze > requirements.txt
 ```
 
 

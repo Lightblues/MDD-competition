@@ -27,8 +27,8 @@ batch_size = 4096
 
 # test_path = '../data/原数据-20210301-20210328/'
 test_path = "../data/SMP新数据-20210607-20210702/"
-# feature_columns, behavior_list, test_X, wm_order_id = create_test_dataset(test_path, embed_dim, maxlen)
-feature_columns, behavior_list, test_X, wm_order_id = pickle.load(open('../data/data-DIN-test.pkl', 'rb'))
+feature_columns, behavior_list, test_X, wm_order_id = create_test_dataset(test_path, embed_dim, maxlen)
+# feature_columns, behavior_list, test_X, wm_order_id = pickle.load(open('../data/data-DIN-test.pkl', 'rb'))
 
 model = DIN(feature_columns, behavior_list, att_hidden_units, ffn_hidden_units, att_activation,
             ffn_activation, maxlen, dnn_dropout)
@@ -43,7 +43,7 @@ save-DIN/din_weights.epoch_0009.val_loss_0.0655.ckpt
 save-DIN/din_weights.epoch_0006.val_loss_0.0664.ckpt
 save-DIN/din_weights.epoch_0010.val_loss_0.0629.ckpt
 """
-check_path = 'save-DIN/din_weights.epoch_0001.val_loss_0.0989.ckpt'
+check_path = 'save-DIN/din_weights.epoch_0011.val_loss_0.0588.ckpt'
 model.load_weights(check_path)
 
 # model.built = True
@@ -64,7 +64,7 @@ for dense_input, sparse_input, seq_input, order_id in tqdm(list(zip(*test_X, wm_
         np.repeat([seq_input], npois, axis=0),
         np.arange(npois)[..., np.newaxis]
     ]
-    print([d.shape for d in data])
+    # print([d.shape for d in data])
     out = model(data).numpy().squeeze()
     topK = np.argsort(out)[::-1][:5]
     # pred.append(topK)

@@ -1,7 +1,10 @@
 /data
 .DS_Store
 .idea
+.vscode
 /log
 save/
 results
 save-DIN/
+__pycache__
+results
